@@ -5,11 +5,14 @@ import { ConfigService } from '@nestjs/config';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import compress from '@fastify/compress';
 
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
   );
+
   await app.register(compress);
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT', 3000);
@@ -20,16 +23,26 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Strips properties that do not have any decorators
-      forbidNonWhitelisted: true, // Throws an error if non-whitelisted values are provided
-      transform: true, // Automatically transforms payloads to DTO instances
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
-  // Configure CORS if needed
+  // ✅ Configurar Swagger
+  const config = new DocumentBuilder()
+    .setTitle('Quadcode API')
+    .setDescription('API de trading com SDK Quadcode (IQ Option / Avalon)')
+    .setVersion('1.0')
+    .addTag('trading')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('/docs', app, document);
 
   await app.listen({ port, host: '0.0.0.0' });
   Logger.log(`Server running on http://localhost:${port}/api`, 'Bootstrap');
+  Logger.log(`Swagger disponível em http://localhost:${port}/docs`, 'Swagger');
   Logger.log(`Current environment: ${nodeEnv}`, 'Bootstrap');
 }
 bootstrap();
