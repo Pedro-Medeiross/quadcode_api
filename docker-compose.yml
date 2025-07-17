@@ -20,7 +20,7 @@ services:
 
   mongo:
     image: mongo:6
-    container_name: quadcode_mongo
+    container_name: quadcode_mongo_1
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
