@@ -1,3 +1,4 @@
+
 # Stage 1: build
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -5,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-COPY ../../Downloads/api-polarium-master .
+COPY . .
 RUN npm run build
 
 # Stage 2: runtime
