@@ -1,16 +1,23 @@
 version: "3.8"
 
 services:
-  api:
+  # Avalon API Service
+  avalon_api:
     build:
       context: .
       dockerfile: Dockerfile
     env_file:
       - .env
+    environment:
+      - PORT=3001
+      - BROKER_ID=${BROKER_ID_AVALON}
+      - BASE_URL_WS=${BASE_URL_WS_AVALON}
+      - BASE_URL_API=${BASE_URL_API_AVALON}
+      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@avalon_mongo:27018/?authSource=admin
     ports:
       - "3001:3001"
     depends_on:
-      - mongo
+      - avalon_mongo
     restart: always
     logging:
       driver: json-file
@@ -18,9 +25,35 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  mongo:
+  # Polarium API Service
+  polarium_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - PORT=3002
+      - BROKER_ID=${BROKER_ID_POLARIUM}
+      - BASE_URL_WS=${BASE_URL_WS_POLARIUM}
+      - BASE_URL_API=${BASE_URL_API_POLARIUM}
+      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@polarium_mongo:27017/?authSource=admin
+    ports:
+      - "3002:3002"
+    depends_on:
+      - polarium_mongo
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Avalon MongoDB Service
+  avalon_mongo:
     image: mongo:6
-    container_name: quadcode_mongo_1
+    container_name: avalon_mongo
+    command: mongod --port 27018
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
@@ -28,7 +61,21 @@ services:
     ports:
       - "27018:27018"
     volumes:
-      - mongo_data:/data/db
+      - avalon_mongo_data:/data/db
+
+  # Polarium MongoDB Service
+  polarium_mongo:
+    image: mongo:6
+    container_name: polarium_mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
+    ports:
+      - "27017:27017"
+    volumes:
+      - polarium_mongo_data:/data/db
 
 volumes:
-  mongo_data:
+  avalon_mongo_data:
+  polarium_mongo_data:
