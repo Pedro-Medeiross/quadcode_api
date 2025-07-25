@@ -24,6 +24,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - botnet
 
   # Polarium API Service
   polarium_api:
@@ -48,6 +50,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - botnet
 
   # Avalon MongoDB Service
   avalon_mongo:
@@ -62,6 +66,8 @@ services:
       - "27018:27018"
     volumes:
       - avalon_mongo_data:/data/db
+    networks:
+      - botnet
 
   # Polarium MongoDB Service
   polarium_mongo:
@@ -75,7 +81,14 @@ services:
       - "27017:27017"
     volumes:
       - polarium_mongo_data:/data/db
+    networks:
+      - botnet
 
 volumes:
   avalon_mongo_data:
   polarium_mongo_data:
+
+networks:
+  botnet:
+    name: trading_docker_manipulator_botnet
+    driver: bridge
