@@ -1,11 +1,10 @@
-version: "3.8"
-
 services:
-  # Avalon API Service
+  # Avalon API
   avalon_api:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runtime-avalon
     env_file:
       - .env
     environment:
@@ -25,11 +24,12 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Polarium API Service
+  # Polarium API
   polarium_api:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runtime-polarium
     env_file:
       - .env
     environment:
@@ -49,7 +49,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Avalon MongoDB Service
+  # Mongo Avalon (apenas rede interna)
   avalon_mongo:
     image: mongo:6
     container_name: avalon_mongo
@@ -58,12 +58,11 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
-    ports:
-      - "27018:27018"
+    # sem "ports:" -> não expõe pra fora
     volumes:
       - avalon_mongo_data:/data/db
 
-  # Polarium MongoDB Service
+  # Mongo Polarium (apenas rede interna)
   polarium_mongo:
     image: mongo:6
     container_name: polarium_mongo
@@ -71,8 +70,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
-    ports:
-      - "27017:27017"
+    # sem "ports:" -> não expõe pra fora
     volumes:
       - polarium_mongo_data:/data/db
 

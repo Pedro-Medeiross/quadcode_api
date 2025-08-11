@@ -1,27 +1,30 @@
-
-# Stage 1: build
+# Stage 1: build (com devDependencies)
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# Instalação determinística
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
+# Copia o código e compila
 COPY . .
+# Garante que o script "build" funcione (ex: "nest build" ou "tsc -p tsconfig.build.json")
 RUN npm run build
 
-# Stage 2: runtime
-FROM node:20-alpine
+# Stage 2: runtime (somente prod deps)
+FROM node:20-alpine AS runtime
 WORKDIR /app
+ENV NODE_ENV=production
 
-# só dependências de produção
 COPY package*.json ./
-RUN npm install --only=production
+# Apenas deps de produção
+RUN npm ci --omit=dev
 
-# copia dist compilada
+# Copia a build do stage anterior
 COPY --from=builder /app/dist ./dist
 
-# porta interna do Nest (definida em .env via PORT)
-EXPOSE ${PORT}
+# EXPOSE é opcional (compose publica as portas). Pode omitir ou usar um número fixo.
+# EXPOSE 3001
 
-# comando para iniciar
-CMD ["node", "dist/main"]
+# Ajuste o nome do arquivo conforme sua build (geralmente main.js)
+CMD ["node", "dist/main.js"]
