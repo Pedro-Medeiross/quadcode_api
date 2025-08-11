@@ -1,10 +1,11 @@
+version: "3.8"
+
 services:
-  # Avalon API
+  # ---------- Avalon API ----------
   avalon_api:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runtime-avalon
     env_file:
       - .env
     environment:
@@ -16,7 +17,8 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - avalon_mongo
+      avalon_mongo:
+        condition: service_healthy
     restart: always
     logging:
       driver: json-file
@@ -24,12 +26,11 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Polarium API
+  # ---------- Polarium API ----------
   polarium_api:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runtime-polarium
     env_file:
       - .env
     environment:
@@ -41,7 +42,8 @@ services:
     ports:
       - "3002:3002"
     depends_on:
-      - polarium_mongo
+      polarium_mongo:
+        condition: service_healthy
     restart: always
     logging:
       driver: json-file
@@ -49,7 +51,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Mongo Avalon (apenas rede interna)
+  # ---------- Mongo Avalon ----------
   avalon_mongo:
     image: mongo:6
     container_name: avalon_mongo
@@ -58,11 +60,18 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
-    # sem "ports:" -> não expõe pra fora
+    ports:
+      # Se não precisa acessar de fora, pode remover esta linha
+      - "27018:27018"
     volumes:
       - avalon_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--port", "27018", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Mongo Polarium (apenas rede interna)
+  # ---------- Mongo Polarium ----------
   polarium_mongo:
     image: mongo:6
     container_name: polarium_mongo
@@ -70,9 +79,16 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
-    # sem "ports:" -> não expõe pra fora
+    ports:
+      # Idem: remova se não precisar expor
+      - "27017:27017"
     volumes:
       - polarium_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   avalon_mongo_data:
