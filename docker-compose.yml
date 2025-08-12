@@ -1,8 +1,11 @@
+version: "3.8"
+
 services:
   avalon_api:
     build:
       context: .
       dockerfile: Dockerfile
+      network: host
     env_file:
       - .env
     environment:
@@ -16,19 +19,19 @@ services:
     depends_on:
       - avalon_mongo
     restart: always
+    networks:
+      - trading_docker_manipulator_botnet
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - default
-      - trading_net
 
   polarium_api:
     build:
       context: .
       dockerfile: Dockerfile
+      network: host
     env_file:
       - .env
     environment:
@@ -42,14 +45,13 @@ services:
     depends_on:
       - polarium_mongo
     restart: always
+    networks:
+      - trading_docker_manipulator_botnet
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
-    networks:
-      - default
-      - trading_net
 
   avalon_mongo:
     image: mongo:6
@@ -64,8 +66,7 @@ services:
     volumes:
       - avalon_mongo_data:/data/db
     networks:
-      - default
-      - trading_net
+      - trading_docker_manipulator_botnet
 
   polarium_mongo:
     image: mongo:6
@@ -79,16 +80,12 @@ services:
     volumes:
       - polarium_mongo_data:/data/db
     networks:
-      - default
-      - trading_net
+      - trading_docker_manipulator_botnet
 
 volumes:
   avalon_mongo_data:
   polarium_mongo_data:
 
 networks:
-  default:
+  trading_docker_manipulator_botnet:
     driver: bridge
-  trading_net:
-    external: true
-    name: trading_docker_manipulator_botnet
