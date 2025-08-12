@@ -1,7 +1,5 @@
-version: "3.8"
-
 services:
-  # ---------- Avalon API ----------
+  # Avalon API Service
   avalon_api:
     build:
       context: .
@@ -17,16 +15,18 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      avalon_mongo:
-        condition: service_healthy
+      - avalon_mongo
     restart: always
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - default
+      - trading_net
 
-  # ---------- Polarium API ----------
+  # Polarium API Service
   polarium_api:
     build:
       context: .
@@ -42,16 +42,18 @@ services:
     ports:
       - "3002:3002"
     depends_on:
-      polarium_mongo:
-        condition: service_healthy
+      - polarium_mongo
     restart: always
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - default
+      - trading_net
 
-  # ---------- Mongo Avalon ----------
+  # Avalon MongoDB Service
   avalon_mongo:
     image: mongo:6
     container_name: avalon_mongo
@@ -61,17 +63,14 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
     ports:
-      # Se não precisa acessar de fora, pode remover esta linha
       - "27018:27018"
     volumes:
       - avalon_mongo_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--port", "27018", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    networks:
+      - default
+      - trading_net
 
-  # ---------- Mongo Polarium ----------
+  # Polarium MongoDB Service
   polarium_mongo:
     image: mongo:6
     container_name: polarium_mongo
@@ -80,16 +79,20 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
     ports:
-      # Idem: remova se não precisar expor
       - "27017:27017"
     volumes:
       - polarium_mongo_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    networks:
+      - default
+      - trading_net
 
 volumes:
   avalon_mongo_data:
   polarium_mongo_data:
+
+networks:
+  default:
+    driver: bridge
+  trading_net:
+    external: true
+    name: trading_docker_manipulator_botnet

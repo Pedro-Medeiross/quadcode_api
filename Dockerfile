@@ -1,31 +1,29 @@
-# ---------- Stage 1: build (com devDependencies) ----------
+# Stage 1: build
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Instala de forma determinística
+# instala deps **com dev** (precisa do @nestjs/cli)
 COPY package*.json ./
 RUN npm ci
 
-# Copia o código do projeto (o Dockerfile deve estar no mesmo diretório do código)
+# copia código e compila
 COPY . .
-
-# Compila (ex.: script "build" chama "nest build" ou "tsc")
 RUN npm run build
 
-# ---------- Stage 2: runtime (somente prod deps) ----------
+# Stage 2: runtime
 FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Apenas deps de produção
+# instala deps **sem dev**
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Copia a build do stage anterior
+# copia o build
 COPY --from=builder /app/dist ./dist
 
-# Dica: não use EXPOSE com variável (não expande). Pode omitir, o compose publica as portas.
+# (opcional) EXPOSE não é obrigatório; o compose publica as portas
 # EXPOSE 3001
 
-# Ajuste o entrypoint conforme o arquivo gerado no build
+# start
 CMD ["node", "dist/main.js"]
