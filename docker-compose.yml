@@ -1,5 +1,4 @@
 services:
-  # Avalon API Service
   avalon_api:
     build:
       context: .
@@ -26,7 +25,6 @@ services:
       - default
       - trading_net
 
-  # Polarium API Service
   polarium_api:
     build:
       context: .
@@ -53,7 +51,6 @@ services:
       - default
       - trading_net
 
-  # Avalon MongoDB Service
   avalon_mongo:
     image: mongo:6
     container_name: avalon_mongo
@@ -70,7 +67,6 @@ services:
       - default
       - trading_net
 
-  # Polarium MongoDB Service
   polarium_mongo:
     image: mongo:6
     container_name: polarium_mongo
