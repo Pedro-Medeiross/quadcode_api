@@ -1,36 +1,27 @@
 # ---------- Stage 1: build ----------
-FROM node:20-alpine AS builder
+FROM node:20-bullseye-slim AS builder
 WORKDIR /app
 
-# Dependências de sistema (se houver libs nativas)
-RUN apk add --no-cache python3 make g++ git
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 make g++ git ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 
-# Copia manifestos e instala deps (DEV + PROD)
 COPY package*.json ./
 RUN npm ci
 
-# Garante o CLI do Nest disponível no PATH
 RUN npm i -g @nestjs/cli
 
-# Copia o resto do código e compila
 COPY . .
-# Só pra ver versão do nest no build log (debug opcional)
-RUN npx nest --version
-RUN nest build
+RUN npx nest --version && nest build
 
 # ---------- Stage 2: runtime ----------
-FROM node:20-alpine
+FROM node:20-bullseye-slim
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Só as deps de produção
 COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts
 
-# Artefatos compilados
 COPY --from=builder /app/dist ./dist
-
-# Não precisa fixar EXPOSE aqui (o Compose faz o bind), mas se quiser:
-# EXPOSE 3001
 
 CMD ["node", "dist/main"]
